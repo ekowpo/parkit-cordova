@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+    <!--
+        Customize the content security policy in the meta tag below as needed. Add 'unsafe-inline' to default-src to enable inline JavaScript.
+        For details, see http://go.microsoft.com/fwlink/?LinkID=617521
+    -->
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <link rel="stylesheet" type="text/css" href="css/index.css">
+        <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'" />
+
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Satisfy" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.1/jquery.toast.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.1/jquery.toast.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.css">
+
+
+        <title>parkit</title>
+    </head>
+    <body>
+        <div class="app">
+
+            <h1><b>PARK</b>IT</h1>
+            <div id="deviceready" class="blink">
+     
+
+            <div class="form-group">
+
+                <fb:login-button scope="public_profile,email" onlogin="checkLoginState();" class="form-control">
+                </fb:login-button>
+                <button class="btn btn-block bt-primary" onclick="login()">Login with Facebook</button>
+                <button class="btn btn-block btn-danger" onclick="callGoogle()" >Login with Google</button>
+            </div>
+            </div>
+        </div>
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
+
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="scripts/platformOverrides.js"></script>
+        <script type="text/javascript" src="scripts/index.js"></script>
+       <!--<script type="text/javascript" src="scripts/script.js"></script>--> 
+        <script type="text/javascript" src="./scripts/gmail.js" ></script>
+        <script type="text/javascript" src="scripts/openfb.js"></script>
+        <script>
+            // Defaults to sessionStorage for storing the Facebook token
+            openFB.init({ appId: '1736609636381390' });
+            //  Uncomment the line below to store the Facebook token in localStorage instead of sessionStorage
+            //  openFB.init({appId: 'YOUR_FB_APP_ID', tokenStore: window.localStorage});
+            function login() {
+                openFB.login(
+                    function (response) {
+                        if (response.status === 'connected') {
+                            alert('Facebook login succeeded, got access token: ' + response.authResponse.accessToken);
+                        } else {
+                            alert('Facebook login failed: ' + response.error);
+                        }
+                    }, { scope: 'email,read_stream,publish_actions' });
+            }
+            function getInfo() {
+                openFB.api({
+                    path: '/me',
+                    success: function (data) {
+                        console.log(JSON.stringify(data));
+                        document.getElementById("userName").innerHTML = data.name;
+                        document.getElementById("userPic").src = 'http://graph.facebook.com/' + data.id + '/picture?type=small';
+                    },
+                    error: errorHandler
+                });
+            }
+            function share() {
+                openFB.api({
+                    method: 'POST',
+                    path: '/me/feed',
+                    params: {
+                        message: document.getElementById('Message').value || 'Testing Facebook APIs'
+                    },
+                    success: function () {
+                        alert('the item was posted on Facebook');
+                    },
+                    error: errorHandler
+                });
+            }
+            function readPermissions() {
+                openFB.api({
+                    method: 'GET',
+                    path: '/me/permissions',
+                    success: function (result) {
+                        alert(JSON.stringify(result.data));
+                    },
+                    error: errorHandler
+                });
+            }
+            function revoke() {
+                openFB.revokePermissions(
+                    function () {
+                        alert('Permissions revoked');
+                    },
+                    errorHandler);
+            }
+            function logout() {
+                openFB.logout(
+                    function () {
+                        alert('Logout successful');
+                    },
+                    errorHandler);
+            }
+            function errorHandler(error) {
+                alert(error.message);
+            }
+
+
+            function statusChangeCallback(response) {
+                console.log('statusChangeCallback');
+                console.log(response);
+
+                // The response object is returned with a status field that lets the
+                // app know the current login status of the person.
+                // Full docs on the response object can be found in the documentation
+                // for FB.getLoginStatus().
+                if (response.status === 'connected') {
+                    // Logged into your app and Facebook.
+                    testAPI();
+                } else {
+                    // The person is not logged into your app or we are unable to tell.
+                    document.getElementById('status').innerHTML = 'Please log ' +
+                        'into this app.';
+                }
+            }
+            // This function is called when someone finishes with the Login
+            // Button.  See the onlogin handler attached to it in the sample
+            // code below.
+            function checkLoginState() {
+                FB.getLoginStatus(function (response) {
+                    statusChangeCallback(response);
+                });
+            }
+
+            window.fbAsyncInit = function () {
+                FB.init({
+                    appId: '1736609636381390',
+                    cookie: true,  // enable cookies to allow the server to access 
+                    // the session
+                    xfbml: true,  // parse social plugins on this page
+                    version: 'v2.8' // use graph api version 2.8
+                });
+
+                // Now that we've initialized the JavaScript SDK, we call 
+                // FB.getLoginStatus().  This function gets the state of the
+                // person visiting this page and can return one of three states to
+                // the callback you provide.  They can be:
+                //
+                // 1. Logged into your app ('connected')
+                // 2. Logged into Facebook, but not your app ('not_authorized')
+                // 3. Not logged into Facebook and can't tell if they are logged into
+                //    your app or not.
+                //
+                // These three cases are handled in the callback function.
+
+                FB.getLoginStatus(function (response) {
+                    statusChangeCallback(response);
+                });
+
+            };
+
+            // Load the SDK asynchronously
+            (function (d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); js.id = id;
+                js.src = "//connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+
+            // Here we run a very simple test of the Graph API after login is
+            // successful.  See statusChangeCallback() for when this call is made.
+            function testAPI() {
+                console.log('Welcome!  Fetching your information.... ');
+                FB.api('/me', function (response) {
+                    console.log('Successful login for: ' + response.name);
+                    entity = response;
+                    localStorage.setItem("name", response.name);
+                    localStorage.setItem("id", response.id);
+                    window.location.href = "page/search.html";
+
+                });
+            }
+
+        </script>
+    </body>
+</html>
